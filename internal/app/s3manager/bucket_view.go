@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
-
 	"github.com/matryer/way"
 	minio "github.com/minio/minio-go"
 )

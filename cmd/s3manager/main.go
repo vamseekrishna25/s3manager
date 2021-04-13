@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
+    "crypto/tls"
 	"github.com/mastertinner/adapters/logging"
 	"github.com/mastertinner/s3manager/internal/app/s3manager"
 	"github.com/matryer/way"
@@ -15,6 +15,7 @@ import (
 )
 
 func main() {
+
 	endpoint, ok := os.LookupEnv("ENDPOINT")
 	if !ok {
 		endpoint = "s3.amazonaws.com"
@@ -32,6 +33,13 @@ func main() {
 		useSSLEnvVar = "true"
 	}
 	useSSL := strings.ToLower(useSSLEnvVar) == "true"
+
+	useSkipSSLVerificationEnvVar, ok := os.LookupEnv("USE_Skip_SSL_Verification")
+	if !ok {
+		useSkipSSLVerificationEnvVar = "true"
+	}
+	useSkipSSLVerification := strings.ToLower(useSkipSSLVerificationEnvVar) == "true"
+    	
 	port, ok := os.LookupEnv("PORT")
 	if !ok {
 		port = "8080"
@@ -41,10 +49,14 @@ func main() {
 
 	// Set up S3 client
 	s3, err := minio.New(endpoint, accessKeyID, secretAccessKey, useSSL)
+	if(useSkipSSLVerification && useSSL){
+		s3.SetCustomTransport(&http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}})
+	}
+
 	if err != nil {
 		log.Fatalln(fmt.Errorf("error creating s3 client: %w", err))
 	}
-
+	
 	// Set up router
 	r := way.NewRouter()
 	r.Handle(http.MethodGet, "/", http.RedirectHandler("/buckets", http.StatusPermanentRedirect))
