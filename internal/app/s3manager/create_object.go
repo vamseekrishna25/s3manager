@@ -32,6 +32,8 @@ func HandleCreateObject(s3 S3) http.HandlerFunc {
 			return
 		}
 
-		w.WriteHeader(http.StatusCreated)
+		//w.WriteHeader(http.StatusCreated)
+
+		http.Redirect(w, r, "/buckets/"+bucketName, http.StatusSeeOther)
 	}
 }
